@@ -3,7 +3,6 @@
  * using a single pthread as RT thread
  */
  
-#include "worker_thread.h"
 
 #include <limits.h>
 #include <pthread.h>
@@ -13,9 +12,12 @@
 #include <sys/mman.h>
 
 
-#define WORKER_THREAD_PRIORITY (80)
-#define WORKER_THREAD_CPU_AFFINITY (3)
-#define WORKER_THREAD_STACK_SIZE (PTHREAD_STACK_MIN)
+#include "worker_thread.h"
+#include "pthread_defines.h"
+
+//#define WORKER_THREAD_PRIORITY (80)
+//#define WORKER_THREAD_CPU_AFFINITY (3)
+//#define WORKER_THREAD_STACK_SIZE (PTHREAD_STACK_MIN)
  
  /*
 void *thread_func(void *data)

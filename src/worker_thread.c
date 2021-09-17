@@ -14,7 +14,7 @@
 #define GPIO_PIN_IN  (20)
 #define GPIO_PIN_OUT (21)
 //#define GPIO_PIN_PWM (13)
-#define GPIO_PIN_PWM (12
+#define GPIO_PIN_PWM (12)
 
 void Handler(int signo)
 {
@@ -37,13 +37,12 @@ static void callback(int gpio, int level, uint32_t tick, void *data) {
 
    //printf("callback\n");
    user_data *p_data = data;
-   //gpioWrite(GPIO_PIN_OUT, level);
+   gpioWrite(GPIO_PIN_OUT, level);
 
+	return NULL;
    //printf("%u\n", tick);
    if (level == 1)
       p_data->array[(p_data->cnt++)%p_data->len] = tick;
-   //p_data->array[0] = 5;
-   //p_data->val = tick;
 
 }
 
@@ -56,10 +55,10 @@ void *thread_func(void *thread_data)
 	user_data data;
 
 	// Exception handling:ctrl + c
-    signal(SIGINT, Handler);
+    //signal(SIGINT, Handler);
 
 	data.cnt = 0;
-	data.len = 16;
+	data.len = 4;
 	data.array = (uint32_t*)malloc(data.len * sizeof(uint32_t));
 	memset(data.array, 0, data.len*sizeof(uint32_t));
 
@@ -79,18 +78,19 @@ void *thread_func(void *thread_data)
 
 	gpioSetPullUpDown(GPIO_PIN_IN, PI_PUD_DOWN);
 
-	gpioSetAlertFuncEx(GPIO_PIN_IN, callback, (void*)&data);
+	//gpioSetAlertFuncEx(GPIO_PIN_IN, callback, (void*)&data);
 
-	//gpioSetISRFuncEx(GPIO_PIN_IN, EITHER_EDGE, 1000, callback, NULL);
+	gpioSetISRFuncEx(GPIO_PIN_IN, EITHER_EDGE, 1000, callback, (void*)&data);
 
 	/* Start 1500 us servo pulses on GPIO4 */
 	//gpioServo(4, 1500);
 
 	/* Start 75% dutycycle PWM on GPIO17 */
-	//gpioSetPWMfrequency(GPIO_PIN_OUT, 8000);
-	gpioSetPWMfrequency(GPIO_PIN_OUT, 40000);
+	//gpioSetPWMfrequency(GPIO_PIN_OUT, 2000);
+	//gpioSetPWMfrequency(GPIO_PIN_OUT, 40000);
 	//gpioSetPWMfrequency(GPIO_PIN_PWM, 40000);
-	gpioPWM(GPIO_PIN_OUT, 255/2); /* 192/255 = 75% */
+	//gpioPWM(GPIO_PIN_OUT, 128); /* 192/255 = 75% */
+	//gpioPWM(GPIO_PIN_OUT, 12); /* 192/255 = 75% */
 	//gpioPWM(GPIO_PIN_PWM, 192); /* 192/255 = 75% */
 
 	//start = time_time();
@@ -112,7 +112,7 @@ void *thread_func(void *thread_data)
 
 	//   /* Mirror GPIO24 from GPIO23 */
 	//   gpioWrite(24, gpioRead(23));
-		time_sleep(1);
+		time_sleep(5);
 		printf("ticks [%d]:\n", cnt++);
 		for (int i=0; i<data.len; i++) {
 			uint32_t ms = data.array[i]/1000;
