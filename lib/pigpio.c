@@ -65,6 +65,7 @@ For more information, please refer to <http://unlicense.org/>
 #include <arpa/inet.h>
 
 #include "pigpio.h"
+#include "pthread_defines.h"
 
 #include "command.h"
 
@@ -8337,10 +8338,9 @@ int initInitialise(void)
       fdMem = -1;
    }
 
-   param.sched_priority = sched_get_priority_max(SCHED_FIFO);
-
-   if (gpioCfg.internals & PI_CFG_RT_PRIORITY)
-      sched_setscheduler(0, SCHED_FIFO, &param);
+   //param.sched_priority = sched_get_priority_max(SCHED_FIFO);
+   //if (gpioCfg.internals & PI_CFG_RT_PRIORITY)
+   //   sched_setscheduler(0, SCHED_FIFO, &param);
 
    initClock(1); /* initialise main clock */
 
@@ -8351,6 +8351,24 @@ int initInitialise(void)
 
    if (pthread_attr_setstacksize(&pthAttr, STACK_SIZE))
       SOFT_ERROR(PI_INIT_FAILED, "pthread_attr_setstacksize failed (%m)");
+
+   if (pthread_attr_setschedpolicy(&pthAttr, SCHED_FIFO))
+      SOFT_ERROR(PI_INIT_FAILED, "pthread_attr_setschedpolicy failed (%m)");
+
+   param.sched_priority = PIGPIO_THREAD_PRIORITY;
+   if (pthread_attr_setschedparam(&pthAttr, &param))
+      SOFT_ERROR(PI_INIT_FAILED, "pthread_attr_setschedparam failed (%m)");
+
+   cpu_set_t cpuset;
+   CPU_ZERO(&cpuset);
+   CPU_SET(PIGPIO_THREAD_CPU_AFFINITY, &cpuset);
+   if (pthread_attr_setaffinity_np(&pthAttr, sizeof(cpu_set_t), &cpuset))
+      SOFT_ERROR(PI_INIT_FAILED, "pthread_attr_setinheritsched failed (%m)");
+
+   //if (pthread_attr_setinheritsched(&pthAttr, PTHREAD_INHERIT_SCHED))
+   // INHERIT causes pthread_create to hang
+   if (pthread_attr_setinheritsched(&pthAttr, PTHREAD_EXPLICIT_SCHED))
+      SOFT_ERROR(PI_INIT_FAILED, "pthread_attr_setinheritsched failed (%m)");
 
    if (!(gpioCfg.ifFlags & PI_DISABLE_ALERT))
    {

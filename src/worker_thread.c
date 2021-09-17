@@ -111,7 +111,7 @@ void *thread_func(void *thread_data)
 
 	//   /* Mirror GPIO24 from GPIO23 */
 	//   gpioWrite(24, gpioRead(23));
-		time_sleep(1);
+		time_sleep(0.1);
 		printf("ticks [%d]:\n", cnt++);
 		for (int i=0; i<data.len; i++) {
 			uint32_t ms = data.array[i]/1000;

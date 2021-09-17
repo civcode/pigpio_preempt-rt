@@ -3,7 +3,8 @@ cmake_minimum_required(VERSION 2.8)
 project(pwm)
 
 #set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g -Wall -O3")
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g -Wall -O")
+#set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g -Wall -O")
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g -w -O")
 
 #set(GCC_LINKER_FLAGS "-lpthread")
 set(GCC_LINKER_FLAGS "-lpthread -lpigpio")
