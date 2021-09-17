@@ -7,7 +7,7 @@ project(pwm)
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g -w -O")
 
 #set(GCC_LINKER_FLAGS "-lpthread")
-set(GCC_LINKER_FLAGS "-lpthread -lpigpio")
+set(GCC_LINKER_FLAGS "-lpthread")
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${GCC_LINKER_FLAGS}")
 
 add_definitions(
@@ -15,14 +15,16 @@ add_definitions(
     -D _GNU_SOURCE
 )
 
-include_directories(
+include_directories(  
+    ${CMAKE_SOURCE_DIR}
     ${CMAKE_SOURCE_DIR}/include
-    ${CMAKE_SOURCE_DIR}/lib/pigpio
 )
 
 set(SOURCES
     ${CMAKE_SOURCE_DIR}/src/worker_thread.c
-    ${CMAKE_SOURCE_DIR}/lib/pigpio.c
+    ${CMAKE_SOURCE_DIR}/lib/pigpio/pigpio.c
+    ${CMAKE_SOURCE_DIR}/lib/pigpio/command.c
+    #${CMAKE_SOURCE_DIR}/lib/pigpio/pigs.c
 )
 
 add_executable(pwm src/posix_rt.c ${SOURCES})

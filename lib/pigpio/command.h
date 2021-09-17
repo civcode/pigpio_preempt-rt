@@ -35,7 +35,7 @@ This version is for pigpio version 70+
 #include <stdio.h>
 #include <string.h>
 
-#include "pigpio.h"
+#include "lib/pigpio/pigpio.h"
 
 #define CMD_MAX_PARAM 512
 #define CMD_MAX_EXTENSION (1<<16)

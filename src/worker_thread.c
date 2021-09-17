@@ -4,9 +4,10 @@
 #include <string.h>
 #include <signal.h>  
 
-#include <pigpio.h>
+#include "lib/pigpio/pigpio.h"
 
 #include "worker_thread.h"
+#include "pthread_defines.h"
 
 
 
@@ -63,7 +64,7 @@ void *thread_func(void *thread_data)
 	memset(data.array, 0, data.len*sizeof(uint32_t));
 
 	//gpioCfgClock(1, 1, 0);
-	if (gpioInitialise() < 0)
+	if (gpioInitialise(PIGPIO_THREAD_PRIORITY, PIGPIO_THREAD_CPU_AFFINITY) < 0)
 	{
 		fprintf(stderr, "pigpio initialisation failed\n");
 		return 1;
@@ -111,7 +112,7 @@ void *thread_func(void *thread_data)
 
 	//   /* Mirror GPIO24 from GPIO23 */
 	//   gpioWrite(24, gpioRead(23));
-		time_sleep(0.1);
+		time_sleep(1);
 		printf("ticks [%d]:\n", cnt++);
 		for (int i=0; i<data.len; i++) {
 			uint32_t ms = data.array[i]/1000;

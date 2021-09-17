@@ -64,10 +64,9 @@ For more information, please refer to <http://unlicense.org/>
 #include <glob.h>
 #include <arpa/inet.h>
 
-#include "pigpio.h"
-#include "pthread_defines.h"
+#include "lib/pigpio/pigpio.h"
+#include "lib/pigpio/command.h"
 
-#include "command.h"
 
 
 /* --------------------------------------------------------------- */
@@ -8243,7 +8242,8 @@ static void initReleaseResources(void)
    numSockNetAddr = 0;
 }
 
-int initInitialise(void)
+//int initInitialise(void)
+int initInitialise(int thread_priority, int cpu_affinity)
 {
    int i;
    unsigned rev, model;
@@ -8355,13 +8355,13 @@ int initInitialise(void)
    if (pthread_attr_setschedpolicy(&pthAttr, SCHED_FIFO))
       SOFT_ERROR(PI_INIT_FAILED, "pthread_attr_setschedpolicy failed (%m)");
 
-   param.sched_priority = PIGPIO_THREAD_PRIORITY;
+   param.sched_priority = thread_priority; //PIGPIO_THREAD_PRIORITY;
    if (pthread_attr_setschedparam(&pthAttr, &param))
       SOFT_ERROR(PI_INIT_FAILED, "pthread_attr_setschedparam failed (%m)");
 
    cpu_set_t cpuset;
    CPU_ZERO(&cpuset);
-   CPU_SET(PIGPIO_THREAD_CPU_AFFINITY, &cpuset);
+   CPU_SET(cpu_affinity /*PIGPIO_THREAD_CPU_AFFINITY*/, &cpuset);
    if (pthread_attr_setaffinity_np(&pthAttr, sizeof(cpu_set_t), &cpuset))
       SOFT_ERROR(PI_INIT_FAILED, "pthread_attr_setinheritsched failed (%m)");
 
@@ -8690,7 +8690,8 @@ void rawDumpScript(unsigned script_id)
 
 /* ======================================================================= */
 
-int gpioInitialise(void)
+//int gpioInitialise(void)
+int gpioInitialise(int thread_priority, int cpu_affinity)
 {
    int status;
 
@@ -8700,7 +8701,7 @@ int gpioInitialise(void)
 
    runState = PI_STARTING;
 
-   status = initInitialise();
+   status = initInitialise(thread_priority, cpu_affinity);
 
    if (status < 0)
    {

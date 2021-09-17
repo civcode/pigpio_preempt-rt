@@ -1,5 +1,6 @@
 {
     "files.associations": {
-        "command.h": "c"
+        "command.h": "c",
+        "pigpio.h": "c"
     }
 }

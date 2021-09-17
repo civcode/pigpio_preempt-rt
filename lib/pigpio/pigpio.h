@@ -956,7 +956,8 @@ typedef void *(gpioThreadFunc_t) (void *);
 #define PI_EVENT_BSC 31
 
 /*F*/
-int gpioInitialise(void);
+//int gpioInitialise(void);
+int gpioInitialise(int thread_priority, int cpu_affinity);
 /*D
 Initialises the library.
 

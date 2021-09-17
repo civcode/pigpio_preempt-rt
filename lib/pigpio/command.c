@@ -36,8 +36,8 @@ This version is for pigpio version 70+
 #include <ctype.h>
 #include <inttypes.h>
 
-#include "pigpio.h"
-#include "command.h"
+#include "lib/pigpio/pigpio.h"
+#include "lib/pigpio/command.h"
 
 cmdInfo_t cmdInfo[]=
 {
