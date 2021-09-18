@@ -70,7 +70,7 @@ static void callback(int gpio, int level, uint32_t tick, void *data) {
 static void callback_irq_jitter(int gpio, int level, uint32_t tick, void *data) {
 
 	int do_print = 0;
-	double factor = 0.00001;
+	double factor = 0.0001;
 	static int cnt;
 	static int min = 1e9;
 	static int max = -1;
@@ -228,9 +228,9 @@ void *thread_func(void *thread_data)
 		//printf("time ns: %d\n", ts_diff.tv_nsec);
 
 		gpioWrite(GPIO_PIN_OUT, PI_HIGH);
-		if (cnt == 0) {
-    		printf("gpio out is high\n");
-		}
+		// if (cnt == 0) {
+    	// 	printf("gpio out is high\n");
+		// }
 		//time_sleep(0.0001);
 		time_sleep(0.0005);
 		//time_sleep(0.001);
