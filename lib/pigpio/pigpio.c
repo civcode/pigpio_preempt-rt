@@ -11787,6 +11787,10 @@ static void *pthISRThread(void *x)
    struct pollfd pfd;
    char buf[64];
 
+   pid_t tid;
+   tid = syscall(SYS_gettid);
+   printf("PID %d: PIGPIO pthISRThread\n", tid);
+
    DBG(DBG_USER, "gpio=%d edge=%d timeout=%d f=%"PRIxPTR" u=%d data=%"PRIxPTR,
       isr->gpio, isr->edge, isr->timeout, (uintptr_t)isr->func,
       isr->ex, (uintptr_t)isr->userdata);
@@ -12580,6 +12584,7 @@ pthread_t *gpioStartThread(gpioThreadFunc_t f, void *userdata)
          free(pth);
          SOFT_ERROR(NULL, "pthread_attr_init failed");
       }
+      //todo: priority for isr thread
 
       if (pthread_attr_setstacksize(&pthAttr, STACK_SIZE))
       {

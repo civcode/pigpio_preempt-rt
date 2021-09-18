@@ -70,20 +70,22 @@ static void callback(int gpio, int level, uint32_t tick, void *data) {
 static void callback_irq_jitter(int gpio, int level, uint32_t tick, void *data) {
 
 	int do_print = 0;
-	double factor = 0.000001;
+	double factor = 0.00001;
 	static int cnt;
 	static int min = 1e9;
 	static int max = -1;
-	static double mean = 25000.0;
+	static double mean = 40000.0;
 
 	//printf("callback_irg_jitter\n");
-	struct timespec ts, ts_diff;
+	static struct timespec ts, ts_diff;
 	//user_data *p_data = data;
 	struct timespec *p_data = data;
 	//gpioWrite(GPIO_PIN_OUT, level);
 
-	if (level == PI_LOW)
-		return NULL;
+	//if (cnt++ < 10000) {
+	//	gpioWrite(GPIO_PIN_OUT, PI_LOW);
+	//	return NULL;
+	//}
 
 	clock_gettime(CLOCK_MONOTONIC, &ts);
 	timespec_diff(p_data, &ts, &ts_diff);
@@ -102,7 +104,8 @@ static void callback_irq_jitter(int gpio, int level, uint32_t tick, void *data) 
 		printf("max ns = %d\n", max);
 		printf("mean ns = %f\n\n", mean);
 	}
-	if (cnt%10000 == 0) {
+	if (cnt%1000 == 0) {
+		printf("cnt    = %d\n", cnt);
 		printf("min ns = %d\n", min);
 		printf("max ns = %d\n", max);
 		printf("mean ns = %f\n\n", mean);
@@ -171,7 +174,7 @@ void *thread_func(void *thread_data)
 	//gpioSetISRFuncEx(GPIO_PIN_IN, EITHER_EDGE, 1000, callback, (void*)&data);
 	gpioSetISRFuncEx(GPIO_PIN_IN, RISING_EDGE, 1000, callback_irq_jitter, (void*)&ts);
     printf("isr is set\n");
-	time_sleep(0.5);
+	time_sleep(0.2);
 
 	/* Start 1500 us servo pulses on GPIO4 */
 	//gpioServo(4, 1500);
@@ -228,7 +231,9 @@ void *thread_func(void *thread_data)
 		if (cnt == 0) {
     		printf("gpio out is high\n");
 		}
-		time_sleep(0.0001);
+		//time_sleep(0.0001);
+		time_sleep(0.0005);
+		//time_sleep(0.001);
 		cnt++;
 		//gpioWrite(GPIO_PIN_OUT, PI_LOW);
 		//time_sleep(0.1);
