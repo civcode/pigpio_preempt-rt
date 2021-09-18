@@ -45,7 +45,6 @@ int main(int argc, char* argv[])
         pid_t tid;
 
 
-
         tid = syscall(SYS_gettid);
         printf("PID %d: Main thread\n", tid);
 
@@ -123,7 +122,7 @@ int main(int argc, char* argv[])
                 goto out;
         }
  
-        //turn off signal handling for main thread
+        /* Turn off signal handling for main thread */
         sigemptyset(&set);
         sigaddset(&set, SIGINT);
         ret = pthread_sigmask(SIG_BLOCK, &set, NULL);
