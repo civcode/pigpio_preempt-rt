@@ -3,6 +3,7 @@
 #include <pthread.h>
 #include <string.h>
 #include <signal.h>  
+#include <sys/syscall.h>
 
 #include "lib/pigpio/pigpio.h"
 
@@ -19,7 +20,7 @@
 void Handler(int signo)
 {
     //System Exit
-    printf("Sigint handler - Exit\n");
+    printf("Sigint handler worker thread - Exit\n");
 	/* Stop DMA, release resources */
 	gpioTerminate();
 
@@ -35,14 +36,14 @@ typedef struct user_data_ {
 
 static void callback(int gpio, int level, uint32_t tick, void *data) {
 
-   //printf("callback\n");
-   user_data *p_data = data;
-   gpioWrite(GPIO_PIN_OUT, level);
+	//printf("callback\n");
+	user_data *p_data = data;
+	gpioWrite(GPIO_PIN_OUT, level);
 
-	return NULL;
-   //printf("%u\n", tick);
-   if (level == 1)
-      p_data->array[(p_data->cnt++)%p_data->len] = tick;
+	//return NULL;
+	//printf("%u\n", tick);
+	if (level == 1)
+		p_data->array[(p_data->cnt++)%p_data->len] = tick;
 
 }
 
@@ -53,14 +54,24 @@ void *thread_func(void *thread_data)
     printf("rt thread is running\n");
 	double start;
 	user_data data;
+	int cfg;
+	pid_t tid;
+
+    tid = syscall(SYS_gettid);
+    printf("PID %d: Worker thread\n", tid);
 
 	// Exception handling:ctrl + c
-    //signal(SIGINT, Handler);
+    signal(SIGINT, Handler);
 
 	data.cnt = 0;
 	data.len = 4;
 	data.array = (uint32_t*)malloc(data.len * sizeof(uint32_t));
 	memset(data.array, 0, data.len*sizeof(uint32_t));
+
+	//turn off pigpio ignal handling
+	cfg = gpioCfgGetInternals();
+	cfg |= PI_CFG_NOSIGHANDLER;
+	gpioCfgSetInternals(cfg);
 
 	//gpioCfgClock(1, 1, 0);
 	if (gpioInitialise(PIGPIO_THREAD_PRIORITY, PIGPIO_THREAD_CPU_AFFINITY) < 0)
@@ -74,7 +85,7 @@ void *thread_func(void *thread_data)
 	/* Set GPIO modes */
 	gpioSetMode(GPIO_PIN_IN, PI_INPUT);
 	gpioSetMode(GPIO_PIN_OUT, PI_OUTPUT);
-	//gpioSetMode(GPIO_PIN_PWM, PI_OUTPUT);
+	gpioSetMode(GPIO_PIN_PWM, PI_OUTPUT);
 
 	gpioSetPullUpDown(GPIO_PIN_IN, PI_PUD_DOWN);
 
@@ -86,10 +97,10 @@ void *thread_func(void *thread_data)
 	//gpioServo(4, 1500);
 
 	/* Start 75% dutycycle PWM on GPIO17 */
-	//gpioSetPWMfrequency(GPIO_PIN_OUT, 2000);
+	gpioSetPWMfrequency(GPIO_PIN_PWM, 8000);
 	//gpioSetPWMfrequency(GPIO_PIN_OUT, 40000);
 	//gpioSetPWMfrequency(GPIO_PIN_PWM, 40000);
-	//gpioPWM(GPIO_PIN_OUT, 128); /* 192/255 = 75% */
+	gpioPWM(GPIO_PIN_PWM, 128); /* 192/255 = 75% */
 	//gpioPWM(GPIO_PIN_OUT, 12); /* 192/255 = 75% */
 	//gpioPWM(GPIO_PIN_PWM, 192); /* 192/255 = 75% */
 

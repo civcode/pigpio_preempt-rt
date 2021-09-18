@@ -2,14 +2,18 @@
  * POSIX Real Time Example
  * using a single pthread as RT thread
  */
- 
+
+//#define _GNI_SOURCE
 
 #include <limits.h>
 #include <pthread.h>
+#include <signal.h>
 #include <sched.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/mman.h>
+#include <sys/syscall.h>
+#include <unistd.h>
 
 
 #include "worker_thread.h"
@@ -37,7 +41,14 @@ int main(int argc, char* argv[])
         pthread_attr_t attr;
         pthread_t thread;
         int ret;
- 
+        sigset_t set;
+        pid_t tid;
+
+
+
+        tid = syscall(SYS_gettid);
+        printf("PID %d: Main thread\n", tid);
+
         /* Lock memory */
         if(mlockall(MCL_CURRENT|MCL_FUTURE) == -1) {
                 printf("mlockall failed: %m\n");
@@ -112,6 +123,15 @@ int main(int argc, char* argv[])
                 goto out;
         }
  
+        //turn off signal handling for main thread
+        sigemptyset(&set);
+        sigaddset(&set, SIGINT);
+        ret = pthread_sigmask(SIG_BLOCK, &set, NULL);
+        if (ret) {
+                printf("init pthread sigmask failed\n");
+                goto out;   
+        }
+
         /* Join the thread and wait until it is done */
         ret = pthread_join(thread, NULL);
         if (ret)

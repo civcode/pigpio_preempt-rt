@@ -57,6 +57,7 @@ For more information, please refer to <http://unlicense.org/>
 #include <sys/file.h>
 #include <sys/socket.h>
 #include <sys/sysmacros.h>
+#include <sys/syscall.h>
 #include <netinet/tcp.h>
 #include <arpa/inet.h>
 #include <sys/select.h>
@@ -6295,6 +6296,10 @@ static void * pthAlertThread(void *x)
    gpioSample_t sample[MAX_SAMPLE];
 
    req.tv_sec = 0;
+
+   pid_t tid;
+   tid = syscall(SYS_gettid);
+   printf("PID %d: PIGPIO pthAlertThread\n", tid);
 
    /* don't start until DMA started */
 
