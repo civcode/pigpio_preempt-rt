@@ -82,13 +82,17 @@ static void callback_irq_jitter(int gpio, int level, uint32_t tick, void *data) 
 	struct timespec *p_data = data;
 	//gpioWrite(GPIO_PIN_OUT, level);
 
-	//if (cnt++ < 10000) {
-	//	gpioWrite(GPIO_PIN_OUT, PI_LOW);
-	//	return NULL;
-	//}
+	if (cnt < 20000) {
+		gpioWrite(GPIO_PIN_OUT, PI_LOW);
+		cnt++;
+		return NULL;
+	}
+
+	gpioWrite(GPIO_PIN_OUT, PI_LOW);
 
 	clock_gettime(CLOCK_MONOTONIC, &ts);
 	timespec_diff(p_data, &ts, &ts_diff);
+
 
 	if (ts_diff.tv_nsec < min) {
 		min = ts_diff.tv_nsec;
@@ -112,7 +116,6 @@ static void callback_irq_jitter(int gpio, int level, uint32_t tick, void *data) 
 	}
 	cnt++;
 
-	gpioWrite(GPIO_PIN_OUT, PI_LOW);
 	//printf("time  s: %d\n", ts_diff.tv_sec);
 	//printf("jitter us: %d\n", ts_diff.tv_nsec/1000);
 
@@ -150,7 +153,7 @@ void *thread_func(void *thread_data)
 	cfg |= PI_CFG_NOSIGHANDLER;
 	gpioCfgSetInternals(cfg);
 
-	//gpioCfgClock(1, 1, 0);
+	//gpioCfgClock(3, 1, 0);
 	if (gpioInitialise(PIGPIO_THREAD_PRIORITY, PIGPIO_THREAD_CPU_AFFINITY) < 0)
 	{
 		fprintf(stderr, "pigpio initialisation failed\n");
@@ -180,10 +183,10 @@ void *thread_func(void *thread_data)
 	//gpioServo(4, 1500);
 
 	/* Start 75% dutycycle PWM on GPIO17 */
-	//gpioSetPWMfrequency(GPIO_PIN_PWM, 8000);
+	gpioSetPWMfrequency(GPIO_PIN_PWM, 8000);
 	//gpioSetPWMfrequency(GPIO_PIN_OUT, 40000);
 	//gpioSetPWMfrequency(GPIO_PIN_PWM, 40000);
-	//gpioPWM(GPIO_PIN_PWM, 128); /* 192/255 = 75% */
+	gpioPWM(GPIO_PIN_PWM, 128); /* 192/255 = 75% */
 	//gpioPWM(GPIO_PIN_OUT, 12); /* 192/255 = 75% */
 	//gpioPWM(GPIO_PIN_PWM, 192); /* 192/255 = 75% */
 

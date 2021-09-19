@@ -1857,6 +1857,7 @@ static void spinWhileStarting(void)
    {
       if (piCores == 1) myGpioDelay(1000);
       else flushMemory();
+      myGpioDelay(1000);
    }
 }
 
@@ -6304,6 +6305,7 @@ static void * pthAlertThread(void *x)
    /* don't start until DMA started */
 
    spinWhileStarting();
+   printf("after spinWhileStarting\n");
 
    reportedLevel = gpioReg[GPLEV0];
 
@@ -8384,18 +8386,20 @@ int initInitialise(int thread_priority, int cpu_affinity)
       SOFT_ERROR(PI_INIT_FAILED, "pthread_attr_setschedpolicy failed (%m)");
 
    /* CIV stuff */
-   param.sched_priority = thread_priority; //PIGPIO_THREAD_PRIORITY;
-   if (pthread_attr_setschedparam(&pthAttr, &param))
-      SOFT_ERROR(PI_INIT_FAILED, "pthread_attr_setschedparam failed (%m)");
+   // param.sched_priority = thread_priority; //PIGPIO_THREAD_PRIORITY;
+   // if (pthread_attr_setschedparam(&pthAttr, &param))
+   //    SOFT_ERROR(PI_INIT_FAILED, "pthread_attr_setschedparam failed (%m)");
 
-   cpu_set_t cpuset;
-   CPU_ZERO(&cpuset);
-   CPU_SET(cpu_affinity /*PIGPIO_THREAD_CPU_AFFINITY*/, &cpuset);
-   if (pthread_attr_setaffinity_np(&pthAttr, sizeof(cpu_set_t), &cpuset))
-      SOFT_ERROR(PI_INIT_FAILED, "pthread_attr_setinheritsched failed (%m)");
+   // cpu_set_t cpuset;
+   // CPU_ZERO(&cpuset);
+   // CPU_SET(cpu_affinity /*PIGPIO_THREAD_CPU_AFFINITY*/, &cpuset);
+   // if (pthread_attr_setaffinity_np(&pthAttr, sizeof(cpu_set_t), &cpuset))
+   //    SOFT_ERROR(PI_INIT_FAILED, "pthread_attr_setinheritsched failed (%m)");
 
-   if (pthread_attr_setinheritsched(&pthAttr, PTHREAD_EXPLICIT_SCHED))
-      SOFT_ERROR(PI_INIT_FAILED, "pthread_attr_setinheritsched failed (%m)");
+   // if (pthread_attr_setinheritsched(&pthAttr, PTHREAD_INHERIT_SCHED))
+   //   SOFT_ERROR(PI_INIT_FAILED, "pthread_attr_setinheritsched failed (%m)");
+   // if (pthread_attr_setinheritsched(&pthAttr, PTHREAD_EXPLICIT_SCHED))
+   //    SOFT_ERROR(PI_INIT_FAILED, "pthread_attr_setinheritsched failed (%m)");
    /* CIV stuff */
 
    if (!(gpioCfg.ifFlags & PI_DISABLE_ALERT))
@@ -12591,7 +12595,6 @@ int gpioSetTimerFuncEx(unsigned id, unsigned millis, gpioTimerFuncEx_t f,
 
 pthread_t *gpioStartThread(gpioThreadFunc_t f, void *userdata)
 {
-   struct sched_param param;
    pthread_t *pth;
    pthread_attr_t pthAttr;
 
@@ -12615,11 +12618,12 @@ pthread_t *gpioStartThread(gpioThreadFunc_t f, void *userdata)
          SOFT_ERROR(NULL, "pthread_attr_setstacksize failed");
       }
 
-      /* CIV new stuff */
       if (pthread_attr_setschedpolicy(&pthAttr, SCHED_FIFO))
          SOFT_ERROR(PI_INIT_FAILED, "pthread_attr_setschedpolicy failed (%m)");
 
-      param.sched_priority = 90;
+      /* CIV new stuff */
+      struct sched_param param;
+      param.sched_priority = 98;
       if (pthread_attr_setschedparam(&pthAttr, &param))
          SOFT_ERROR(PI_INIT_FAILED, "pthread_attr_setschedparam failed (%m)");
 
@@ -12630,9 +12634,9 @@ pthread_t *gpioStartThread(gpioThreadFunc_t f, void *userdata)
          SOFT_ERROR(PI_INIT_FAILED, "pthread_attr_setinheritsched failed (%m)");
 
       //if (pthread_attr_setinheritsched(&pthAttr, PTHREAD_INHERIT_SCHED))
-      // INHERIT causes pthread_create to hang
+      //  SOFT_ERROR(PI_INIT_FAILED, "pthread_attr_setinheritsched failed (%m)");
       if (pthread_attr_setinheritsched(&pthAttr, PTHREAD_EXPLICIT_SCHED))
-         SOFT_ERROR(PI_INIT_FAILED, "pthread_attr_setinheritsched failed (%m)");
+        SOFT_ERROR(PI_INIT_FAILED, "pthread_attr_setinheritsched failed (%m)");
       /* CIV new stuff */
 
       if (pthread_create(pth, &pthAttr, f, userdata))
