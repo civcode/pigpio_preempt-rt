@@ -12627,11 +12627,11 @@ pthread_t *gpioStartThread(gpioThreadFunc_t f, void *userdata)
       if (pthread_attr_setschedparam(&pthAttr, &param))
          SOFT_ERROR(PI_INIT_FAILED, "pthread_attr_setschedparam failed (%m)");
 
-      cpu_set_t cpuset;
-      CPU_ZERO(&cpuset);
-      CPU_SET(3 /*PIGPIO_THREAD_CPU_AFFINITY*/, &cpuset);
-      if (pthread_attr_setaffinity_np(&pthAttr, sizeof(cpu_set_t), &cpuset))
-         SOFT_ERROR(PI_INIT_FAILED, "pthread_attr_setinheritsched failed (%m)");
+      // cpu_set_t cpuset;
+      // CPU_ZERO(&cpuset);
+      // CPU_SET(3 /*PIGPIO_THREAD_CPU_AFFINITY*/, &cpuset);
+      // if (pthread_attr_setaffinity_np(&pthAttr, sizeof(cpu_set_t), &cpuset))
+      //    SOFT_ERROR(PI_INIT_FAILED, "pthread_attr_setinheritsched failed (%m)");
 
       //if (pthread_attr_setinheritsched(&pthAttr, PTHREAD_INHERIT_SCHED))
       //  SOFT_ERROR(PI_INIT_FAILED, "pthread_attr_setinheritsched failed (%m)");

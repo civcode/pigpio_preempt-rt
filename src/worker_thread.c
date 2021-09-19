@@ -18,6 +18,11 @@
 //#define GPIO_PIN_PWM (13)
 #define GPIO_PIN_PWM (12)
 
+#define LATENCY_LOG_MAX_ENTRIES ((int)5e6)
+#define LATENCY_LOG_END ((int)1e6)
+static unsigned int logindex;
+static unsigned int a_isr_latency[LATENCY_LOG_MAX_ENTRIES];
+
 typedef struct user_data_ {
    uint32_t cnt;
    uint32_t len;
@@ -30,6 +35,18 @@ typedef struct ts_data_ {
 	struct timespec ts_stop;
 } ts_data;
 
+static void dump_isr_latency()
+{
+	FILE *fp = fopen("isr_latency.txt","w");
+	int i;
+	for(i=0; i < logindex; i++){
+		if(a_isr_latency[i] > 0){
+			fprintf(fp,"%09d\n", (int) a_isr_latency[i]);
+		}
+	}
+	fclose(fp);
+}
+
 void Handler(int signo)
 {
     //System Exit
@@ -37,9 +54,11 @@ void Handler(int signo)
 	/* Stop DMA, release resources */
 	gpioWrite(GPIO_PIN_OUT, PI_LOW);
 	gpioTerminate();
+	dump_isr_latency();
 
     exit(0);
 }
+
 
 void timespec_diff(const struct timespec *start, const struct timespec *stop,
                    struct timespec *result)
@@ -93,6 +112,11 @@ static void callback_irq_jitter(int gpio, int level, uint32_t tick, void *data) 
 	clock_gettime(CLOCK_MONOTONIC, &ts);
 	timespec_diff(p_data, &ts, &ts_diff);
 
+	if (logindex < LATENCY_LOG_MAX_ENTRIES) {
+		a_isr_latency[logindex++] = (unsigned int) ts_diff.tv_nsec;
+		if (logindex == LATENCY_LOG_END)
+			Handler(2);
+	}
 
 	if (ts_diff.tv_nsec < min) {
 		min = ts_diff.tv_nsec;
