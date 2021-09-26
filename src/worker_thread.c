@@ -73,6 +73,18 @@ void timespec_diff(const struct timespec *start, const struct timespec *stop,
     return NULL;
 }
 
+// Adds "delay" nanoseconds to timespecs and sleeps until that time
+static void sleep_until(struct timespec *ts, int delay)
+{
+	
+	ts->tv_nsec += delay;
+	if(ts->tv_nsec >= 1000*1000*1000){
+		ts->tv_nsec -= 1000*1000*1000;
+		ts->tv_sec++;
+	}
+	clock_nanosleep(CLOCK_MONOTONIC, TIMER_ABSTIME, ts,  NULL);
+}
+
 static void callback(int gpio, int level, uint32_t tick, void *data) {
 
 	//printf("callback\n");
@@ -259,7 +271,8 @@ void *thread_func(void *thread_data)
     	// 	printf("gpio out is high\n");
 		// }
 		//time_sleep(0.0001);
-		time_sleep(0.0005);
+		//time_sleep(0.0005);
+		sleep_until(&ts_start, 500*1000);
 		//time_sleep(0.001);
 		cnt++;
 		//gpioWrite(GPIO_PIN_OUT, PI_LOW);
