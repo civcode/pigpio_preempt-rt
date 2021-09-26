@@ -22,6 +22,7 @@
 #define LATENCY_LOG_END ((int)1e6)
 static unsigned int logindex;
 static unsigned int a_isr_latency[LATENCY_LOG_MAX_ENTRIES];
+static int is_running;
 
 typedef struct user_data_ {
    uint32_t cnt;
@@ -53,8 +54,9 @@ void Handler(int signo)
     printf("Sigint handler worker thread - Exit\n");
 	/* Stop DMA, release resources */
 	gpioWrite(GPIO_PIN_OUT, PI_LOW);
-	gpioTerminate();
+	//gpioTerminate();
 	dump_isr_latency();
+	is_running = 0;
 
     exit(0);
 }
@@ -74,7 +76,7 @@ void timespec_diff(const struct timespec *start, const struct timespec *stop,
 }
 
 // Adds "delay" nanoseconds to timespecs and sleeps until that time
-static void sleep_until(struct timespec *ts, int delay)
+static void sleep_until_ns(struct timespec *ts, int delay)
 {
 	
 	ts->tv_nsec += delay;
@@ -237,7 +239,8 @@ void *thread_func(void *thread_data)
     printf("clock_gettime is set\n");
 
 	//while ((time_time() - start) < 60.0)
-	while (1)
+	is_running = 1;
+	while (is_running)
 	{
 	//   gpioWrite(18, 1); /* on */
 
@@ -272,7 +275,7 @@ void *thread_func(void *thread_data)
 		// }
 		//time_sleep(0.0001);
 		//time_sleep(0.0005);
-		sleep_until(&ts_start, 500*1000);
+		sleep_until_ns(&ts_start, 200*1000);
 		//time_sleep(0.001);
 		cnt++;
 		//gpioWrite(GPIO_PIN_OUT, PI_LOW);
